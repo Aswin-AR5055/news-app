@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tamil News Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2 class="sidebar-title">📰 NewsApp</h2>
+
+        <div class="sidebar-menu">
+            <button class="menu-item active" onclick="loadCategory('all')">All News</button>
+            <button class="menu-item" onclick="loadCategory('sports')">Sports</button>
+            <button class="menu-item" onclick="loadCategory('entertainment')">Cinema</button>
+            <button class="menu-item" onclick="loadCategory('politics')">Politics</button>
+            <button class="menu-item" onclick="loadCategory('technology')">Technology</button>
+            <button class="menu-item" onclick="loadCategory('business')">Business</button>
+        </div>
+    </aside>
+
+    <!-- Main layout -->
+    <div class="main-container">
+
+        <!-- Top Navbar -->
+        <nav class="top-nav">
+            <h1>Tamil News Dashboard</h1>
+
+            <div class="nav-actions">
+                <button class="refresh-btn" onclick="reloadNews()">↻</button>
+                <br />
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </nav>
+
+        <!-- Loader -->
+        <div id="loader" class="loader hidden"></div>
+
+        <!-- News Grid -->
+        <div id="news-container" class="news-grid"></div>
+
+    </div>
+
+
+<script>
+    document.getElementById("themeToggle").addEventListener("change", function () {
+        if (this.checked) {
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("theme", "dark");
+        } else {
+            document.body.classList.remove("dark-mode");
+            localStorage.setItem("theme", "light");
+        }
+    });
+
+    window.onload = function () {
+        let theme = localStorage.getItem("theme");
+
+        if (theme === "dark") {
+            document.body.classList.add("dark-mode");
+            document.getElementById("themeToggle").checked = true;
+        }
+    };
+
+    loadCategory("all");
+
+    async function loadCategory(category) {
+        showLoader();
+
+        let res = await fetch(`/news?category=${category}`);
+        let data = await res.json();
+
+        let container = document.getElementById("news-container");
+        container.innerHTML = "";
+
+        if (!data.results) {
+            container.innerHTML = "<p>No news found.</p>";
+            hideLoader();
+            return;
+        }
+
+        data.results.forEach(item => {
+            container.innerHTML += `
+                <div class="card">
+                    ${item.image_url ? `<img src="${item.image_url}" class="card-img">` : ""}
+                    <div class="card-content">
+                        <h2 class="card-title">${item.title}</h2>
+                        <p class="card-desc">${item.description || ""}</p>
+                        <a href="${item.link}" target="_blank" class="read-more">Read More →</a>
+                    </div>
+                </div>
+            `;
+        });
+
+        hideLoader();
+    }
+
+    // Loader Controls
+    function showLoader() {
+        document.getElementById("loader").classList.remove("hidden");
+    }
+    function hideLoader() {
+        setTimeout(() => {
+            document.getElementById("loader").classList.add("hidden");
+        }, 600);
+    }
+
+    function reloadNews() {
+        loadCategory("all");
+    }
+</script>
+
+</body>
+</html>
